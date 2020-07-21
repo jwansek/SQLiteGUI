@@ -1,19 +1,18 @@
+from enum import Enum
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog as filedialogue
 import database
+import mainWidget
 import sys
 import os
 
 class Application(tk.Tk):
-
-    #TODO: connect to a memory database to start
-    db = None
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, dbpath = ":memory:", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("SQLiteGUI")
 
+        # setup menubar
         self.menu = ApplicationMenu(self)
         self.config(menu = self.menu)
 
@@ -23,13 +22,17 @@ class Application(tk.Tk):
         self.tables_and_queries = TablesAndQueriesBook(self)
         self.mainpain.add(self.tables_and_queries)
 
-        self.mainpain.add(ttk.LabelFrame(self))
+        self.mainwidget = mainWidget.MainWidget(self)
+        self.mainpain.add(self.mainwidget)
+        # self.mainwidget.load_window("frame_a")
 
         ttk.Separator(self, orient = tk.HORIZONTAL).pack(fill = tk.X, pady = 3)
 
         self.db_statusbar = DatabaseStatusBar(self)
         self.db_statusbar.pack(fill = tk.X, side = tk.BOTTOM)
 
+        # set up bindings etc, load the database
+        self.use_database(dbpath)
         self.bind('<Control-o>', lambda a: self.open_database_file_gui())
         self.bind('<Control-s>', lambda a: self.save_database())
         self.protocol("WM_DELETE_WINDOW", self.exit)
@@ -57,6 +60,9 @@ class Application(tk.Tk):
 
     def test_func(self):
         self.db.mark_as(database.SavedStatus.UNSAVED)
+
+    def new_table_gui(self):
+        raise NotImplementedError()
 
     def exit(self):
         if self.db is not None:
@@ -129,7 +135,7 @@ class TablesAndQueriesBook(ttk.Notebook):
         self.queries_list = QueriesList(self)
         self.add(self.queries_list, text = "Queries")
 
-class TablesList(tk.Listbox):
+class TablesList(tk.Frame):
 
     table_names = []
 
@@ -137,21 +143,50 @@ class TablesList(tk.Listbox):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
 
+        self.table = tk.Listbox(self)
+        self.table.pack(fill = tk.BOTH, expand = True)
+
+        ttk.Button(self, text = "New table...", command = self.parent.parent.new_table_gui).pack(fill = tk.X)
+
+        self.popup_menu = TablesListMenu(self, tearoff = False)
+        self.table.bind("<Button-1>", self.draw_menu)
+
     def update_tables(self, tables):
         self.table_names = tables
 
         for table in tables:
-            self.insert(0, table)
+            self.table.insert(0, table)
+
+    def draw_menu(self, event):
+        try:
+            self.popup_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.popup_menu.grab_release()
+
+    def get_selection(self):
+        return self.table.get(self.table.curselection()[0])
+
+class TablesListMenu(tk.Menu):
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.parent = parent
+
+        for option in mainWidget.DatabaseCommands:
+            self.add_command(
+                label = option.name, 
+                command = lambda option=option: self.parent.parent.parent.mainwidget.raise_frame(
+                    option.value, table=self.parent.get_selection()
+                )
+            )
 
 class QueriesList(tk.Listbox):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
 
-if __name__ == "__main__":
-    app = Application()
+if __name__ == "__main__": 
     try:
-        app.use_database(sys.argv[1])
+        app = Application(sys.argv[1])
     except IndexError:
-        pass
+        app = Application()
     app.mainloop()

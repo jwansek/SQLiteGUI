@@ -52,12 +52,15 @@ class Database:
         if status == SavedStatus.SAVED:
             self.savedStatus = SavedStatus.SAVED
             self.last_save = time.time()
-            if self.statusbar is not None:
+            if self.statusbar is not None and self.name != ":memory:":
                 self.statusbar.update_connected(self.name)
         else:
             self.savedStatus = SavedStatus.UNSAVED
-            if statusbar is not None:
-                self.statusbar.update_connected("*" + self.name)
+            if self.statusbar is not None:
+                if self.name == ":memory":
+                    self.statusbar.update_connected("Unsaved memory database")
+                else:
+                    self.statusbar.update_connected("*" + self.name)
 
     def commit(self):
         self.__connection.commit()

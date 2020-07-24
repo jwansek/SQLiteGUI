@@ -122,7 +122,9 @@ class DatabaseStatusBar(tk.Frame):
         self.parent.title(f"{name} - SQLiteGUI")
 
     def update_last_query(self, rows, time):
-        self.lbl_right.config(text = "Last query took %.4f seconds. %i rows affected" % (time, rows))
+        self.lbl_right.config(
+            text = "Last query took %.4f seconds. %i rows affected" % (time, rows)
+        )
 
 class TablesAndQueriesBook(ttk.Notebook):
     def __init__(self, parent, *args, **kwargs):
@@ -146,7 +148,9 @@ class TablesList(tk.Frame):
         self.table = tk.Listbox(self)
         self.table.pack(fill = tk.BOTH, expand = True)
 
-        ttk.Button(self, text = "New table...", command = self.parent.parent.new_table_gui).pack(fill = tk.X)
+        ttk.Button(
+            self, text = "New table...", command = self.parent.parent.new_table_gui
+        ).pack(fill = tk.X)
 
         self.popup_menu = TablesListMenu(self, tearoff = False)
         self.table.bind("<Button-1>", self.draw_menu)

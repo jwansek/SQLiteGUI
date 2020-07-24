@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import scrolledtext 
 import abc
 from dataclasses import dataclass
 from enum import Enum
+import help_text
 
 class MainWidget(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -44,15 +46,37 @@ class MainWidgetFrame(abc.ABC, tk.Frame):
     def __post_init__(self):
         super().__init__(self.parent)
 
+        self.sql_book = ttk.Notebook(self)
+        self.sql_book.pack(fill = tk.BOTH, expand = True)
+
+        self.info_text = scrolledtext.ScrolledText(self.sql_book, wrap = tk.WORD)
+        self.sql_book.add(self.info_text, text = "Info")
+
     @abc.abstractmethod
     def onopen(self, **kwargs):
         pass
+
+    def add_page(self, frame:tk.Frame, text:str, title:str):
+        masterframe = ttk.PanedWindow(self, orient = tk.VERTICAL)
+        masterframe.add(frame)
+
+        bottom_text = scrolledtext.ScrolledText(self, wrap = tk.WORD, height = 3)
+        bottom_text.insert(tk.END, text)
+        bottom_text.config(state = tk.DISABLED)
+        masterframe.add(bottom_text)
+
+        self.sql_book.add(masterframe, text = title)
+
+    def set_info_text(self, text):
+        self.info_text.config(state = tk.NORMAL)
+        self.info_text.insert(tk.END, text)
+        self.info_text.config(state = tk.DISABLED)
 
 class DefaultWindow(MainWidgetFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        tk.Text(self).pack(fill = tk.BOTH, expand = True)
+        self.set_info_text("DefaultWindow")
 
     def onopen(self, **kwargs):
         pass
@@ -61,25 +85,29 @@ class SelectWindow(MainWidgetFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        tk.Label(self, text = "SelectWindow").pack()
-        self.lbl_table = tk.Label(self)
-        self.lbl_table.pack()
+        self.set_info_text("SelectWindow")
+
+        from_tables_frame = tk.Frame()
+        tk.Label(from_tables_frame, text = "from_tables_frame").pack(fill = tk.BOTH, expand = True)
+
+        self.add_page(from_tables_frame, text = help_text.HELP_TEXT["SELECT"]["Tables"], title = "Tables")
+
+    
+
 
     def onopen(self, **kwargs):
         assert "table" in kwargs.keys()
-        self.lbl_table.config(text = kwargs["table"])
+        # self.lbl_table.config(text = kwargs["table"])
 
 class UpdateWindow(MainWidgetFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        tk.Label(self, text = "UpdateWindow").pack()
-        self.lbl_table = tk.Label(self)
-        self.lbl_table.pack()
+        self.set_info_text("UpdateWindow")
 
     def onopen(self, **kwargs):
         assert "table" in kwargs.keys()
-        self.lbl_table.config(text = kwargs["table"])
+        # self.lbl_table.config(text = kwargs["table"])
 
 class DatabaseCommands(Enum):
     """This is the class through which we access all of the 

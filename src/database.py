@@ -21,6 +21,9 @@ class QueryResult:
     def get_one_column(self):
         return [i[0] for i in self.result]
 
+    def get_all_columns(self):
+        return self.result
+
 class SavedStatus(Enum):
     SAVED = "saved"
     UNSAVED = "unsaved"
@@ -72,6 +75,16 @@ class Database:
 
     def get_tables(self):
         return self.query("SELECT name FROM sqlite_master WHERE type = 'table';")
+
+    def get_fields(self):
+        return self.query("""
+        SELECT m.name as tableName, 
+            p.name as columnName
+        FROM sqlite_master m
+        left outer join pragma_table_info((m.name)) p
+            on m.name <> p.name
+        order by tableName, columnName
+        ;""")
 
     def run_saved_query(self, saved_query:SavedQuery):
         raise NotImplementedError()

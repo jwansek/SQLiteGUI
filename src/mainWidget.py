@@ -5,6 +5,7 @@ import abc
 from dataclasses import dataclass
 from enum import Enum
 import help_text
+import ttkwidgets
 
 class MainWidget(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -88,9 +89,31 @@ class SelectWindow(MainWidgetFrame):
         self.set_info_text("SelectWindow")
 
         from_tables_frame = tk.Frame()
-        tk.Label(from_tables_frame, text = "from_tables_frame").pack(fill = tk.BOTH, expand = True)
 
-        self.add_page(from_tables_frame, text = help_text.HELP_TEXT["SELECT"]["Tables"], title = "Tables")
+        self.tables_checkbox = ttkwidgets.CheckboxTreeview(from_tables_frame)
+        self.tables_checkbox.pack(fill = tk.BOTH, expand = True)
+
+        for table in self.controller.parent.get_db().get_tables().get_one_column():
+            iid = self.tables_checkbox.insert("", tk.END, tags = (table, ), text = table, iid = table)
+
+        for table, field in self.controller.parent.get_db().get_fields().get_all_columns():
+            self.tables_checkbox.insert(table, tk.END, tags = (table, field), text = field)
+
+        self.add_page(from_tables_frame, text = help_text.HELP_TEXT["SELECT"]["Fields"], title = "Fields")
+
+        joins_frame = tk.Frame()
+
+        cols = ("Type", "Table", "On")
+        self.joins_table = ttk.Treeview(joins_frame, columns = cols,  displaycolumns = cols)
+        # self.joins_table["columns"] = cols
+        self.joins_table["show"] = "headings"
+        for col in cols:
+            # self.joins_table.column(col)
+            self.joins_table.heading(col, text = col)
+        self.joins_table.pack(fill = tk.BOTH, expand = True)
+        self.joins_table.insert("", tk.END, tags = ("fromTable", "<tableName>", ""), values = ("FROM", "<tableName>", ""))
+
+        self.add_page(joins_frame, text = help_text.HELP_TEXT["SELECT"]["Joins"], title = "Joins")    
 
     
 

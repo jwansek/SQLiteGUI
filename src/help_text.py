@@ -1,5 +1,6 @@
 HELP_TEXT = {
     "SELECT": {
-        "Tables": "Choose the tables from which you want to extract data"
+        "Fields": "Choose the tables and fields from which you want to extract data",
+        "Joins": "Select how you want to get data from tables"
     }
 }

@@ -8,6 +8,7 @@ import sys
 import os
 
 class Application(tk.Tk):
+
     def __init__(self, dbpath = ":memory:", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("SQLiteGUI")
@@ -22,17 +23,17 @@ class Application(tk.Tk):
         self.tables_and_queries = TablesAndQueriesBook(self)
         self.mainpain.add(self.tables_and_queries)
 
+        self.db_statusbar = DatabaseStatusBar(self)
+        self.db_statusbar.pack(fill = tk.X, side = tk.BOTTOM)
+        self.use_database(dbpath)
+
         self.mainwidget = mainWidget.MainWidget(self)
         self.mainpain.add(self.mainwidget)
         # self.mainwidget.load_window("frame_a")
 
         ttk.Separator(self, orient = tk.HORIZONTAL).pack(fill = tk.X, pady = 3)
 
-        self.db_statusbar = DatabaseStatusBar(self)
-        self.db_statusbar.pack(fill = tk.X, side = tk.BOTTOM)
-
         # set up bindings etc, load the database
-        self.use_database(dbpath)
         self.bind('<Control-o>', lambda a: self.open_database_file_gui())
         self.bind('<Control-s>', lambda a: self.save_database())
         self.protocol("WM_DELETE_WINDOW", self.exit)
@@ -40,7 +41,6 @@ class Application(tk.Tk):
     def use_database(self, path):
         self.db = database.Database(path, self.db_statusbar)
         self.tables_and_queries.tables_list.update_tables(self.db.get_tables().get_one_column())
-        pass
 
     def new_database_gui(self):
         #TODO: throw a warning if unsaved
@@ -63,6 +63,9 @@ class Application(tk.Tk):
 
     def new_table_gui(self):
         raise NotImplementedError()
+
+    def get_db(self):
+        return self.db
 
     def exit(self):
         if self.db is not None:

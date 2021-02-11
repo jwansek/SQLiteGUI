@@ -86,11 +86,17 @@ class Database:
         order by tableName, columnName
         ;""")
 
+    def get_tables_fields(self, table):
+        out = []
+        for table2, field in self.get_fields().get_all_columns():
+            if table2 == table:
+                out.append(field)
+        return out
+
     def run_saved_query(self, saved_query:SavedQuery):
         raise NotImplementedError()
 
 if __name__ == "__main__":
     db = Database("example_db.db")
-    q = db.get_tables()
-    print(q.time, q.rows, q)
+    print(db.get_tables_fields("items"))
     db.close()

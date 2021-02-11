@@ -66,10 +66,15 @@ class MainWidgetFrame(abc.ABC, tk.Frame):
         masterframe = ttk.PanedWindow(self, orient = tk.VERTICAL)
         masterframe.add(frame)
 
-        bottom_text = scrolledtext.ScrolledText(self, wrap = tk.WORD, height = 3)
+        bottom_frame = tk.Frame(self)
+        bottom_text = scrolledtext.ScrolledText(bottom_frame, wrap = tk.WORD, height = 3)
         bottom_text.insert(tk.END, text)
         bottom_text.config(state = tk.DISABLED)
-        masterframe.add(bottom_text)
+        bottom_text.pack(side = tk.TOP, fill = tk.BOTH, expand = True)
+
+        ttk.Button(bottom_frame, text = "Previous").pack(side = tk.LEFT)
+        ttk.Button(bottom_frame, text = "Next").pack(side = tk.RIGHT)
+        masterframe.add(bottom_frame)
 
         self.sql_book.add(masterframe, text = title)
 
@@ -145,7 +150,7 @@ class SelectWindow(MainWidgetFrame):
         self.thistablecombo.pack(side = tk.LEFT, padx = 2, pady = 2)
         self.equicombo = ttk.Combobox(matching_frame, values = ["<", ">", "="], width = 2)
         self.equicombo.pack(side = tk.LEFT, padx = 3)
-        self.othertablecombo = ttk.Combobox(matching_frame, values = [])
+        self.othertablecombo = ttk.Combobox(matching_frame, values = self.controller.parent.get_db().get_not_tables_fields(tag[1]))
         self.othertablecombo.pack(side = tk.LEFT, padx = 2, pady = 2)
 
         ttk.Separator(subwindow, orient = tk.HORIZONTAL).pack(fill = tk.BOTH, expand = True, pady = 6)

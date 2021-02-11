@@ -90,7 +90,14 @@ class Database:
         out = []
         for table2, field in self.get_fields().get_all_columns():
             if table2 == table:
-                out.append(field)
+                out.append(table + "." + field)
+        return out
+
+    def get_not_tables_fields(self, table):
+        out = []
+        for table2, field in self.get_fields().get_all_columns():
+            if table2 != table:
+                out.append(table2 + "." + field)
         return out
 
     def run_saved_query(self, saved_query:SavedQuery):
@@ -99,4 +106,5 @@ class Database:
 if __name__ == "__main__":
     db = Database("example_db.db")
     print(db.get_tables_fields("items"))
+    print(db.get_not_tables_fields("items"))
     db.close()
